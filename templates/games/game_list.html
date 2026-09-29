@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load crispy_forms_filters %}
+
+{% block content %}
+  <h1>Game List
+    <a href="{% url 'games:game-create' %}" class="btn btn-primary link-to-page">
+      Create
+    </a>
+  </h1>
+
+  <form method="get" action="" class="form-inline">
+    {{ search_form|crispy }}
+    <input class="btn btn-secondary" type="submit" value="Search">
+  </form>
+
+  <br>
+  {% if game_list %}
+
+  <table class="table">
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Genre</th>
+      <th>Developer</th>
+      <th>Description</th>
+      <th>Price, USD</th>
+    </tr>
+  {% for game in game_list %}
+    <tr>
+      <td>{{ game.id }}</td>
+      <td>
+        <a href="{% url 'games:game-detail' game.id %}">
+          {{ game.name }}
+        </a>
+      </td>
+      <td>{% for genre in game.genre.all %}
+            {{ genre.name }}{% if not forloop.last %}, {% endif %}
+          {% endfor %}
+      </td>
+      <td>
+        <a href="{% url 'games:developer-detail' game.developer.id %}">
+          {{ game.developer.name }}
+          {% if user == game.developer %} (Me){% endif %}</a>
+      </td>
+      <td>{{ game.description }}</td>
+      <td>{{ game.price }}</td>
+
+    </tr>
+  {% endfor %}
+
+  </table>
+
+  {% else %}
+    <p>There are no games!</p>
+  {% endif %}
+
+{% endblock %}

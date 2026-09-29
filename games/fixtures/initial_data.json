@@ -1,0 +1,58 @@
+[
+  {
+    "model": "games.country",
+    "pk": 1,
+    "fields": {
+      "name": "United States"
+    }
+  },
+  {
+    "model": "games.genre",
+    "pk": 1,
+    "fields": {
+      "name": "Action"
+    }
+  },
+  {
+    "model": "games.genre",
+    "pk": 2,
+    "fields": {
+      "name": "Adventure"
+    }
+  },
+  {
+    "model": "games.developer",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$example$examplehash",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "naughty_dog",
+      "first_name": "",
+      "last_name": "",
+      "email": "",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-07-24T10:00:00Z",
+      "name": "Naughty Dog",
+      "country": 1,
+      "website": "https://www.naughtydog.com",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "games.game",
+    "pk": 1,
+    "fields": {
+      "name": "The Last of Us",
+      "description": "Action-adventure game set in a post-apocalyptic world.",
+      "release_date": "2013-06-14",
+      "developer": 1,
+      "genre": [
+        1,
+        2
+      ]
+    }
+  }
+]
