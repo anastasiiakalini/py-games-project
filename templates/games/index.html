@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Games Home</h1>
+  <p>Welcome to our page of Games!</p>
+  <h2>Dynamic content</h2>
+  <p>Our Games have the following record counts:</p>
+  <ul>
+    <li><strong>Games:</strong> {{ num_games }}</li>
+    <li><strong>Developers:</strong> {{ num_developers }}</li>
+    <li><strong>Countries:</strong> {{ num_countries }}</li>
+    <li><strong>Genres:</strong> {{ num_genres }}</li>
+  </ul>
+  <p>You have visited this page {{ num_visits }} time{{ num_visits|pluralize }}.</p>
+{% endblock %}

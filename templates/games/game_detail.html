@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  <h1>{{ game.name }}
+    <a href="{% url 'games:game-update' pk=game.id %}" class="btn btn-secondary link-to-page">
+      Update game information
+    </a>
+  </h1>
+  <p>
+    <strong>Genre:</strong>
+    {% for genre in game.genre.all %}
+      {{ genre.name }}{% if not forloop.last %}, {% endif %}
+    {% endfor %}
+  </p>
+  <p>
+    <strong>Description:</strong> {{ game.description }}
+  </p>
+  <p>
+    <strong>Price, USD:</strong> {{ game.price }}
+  </p>
+  <h2>Developer:</h2>
+  <p> Name:
+    <a href="{% url 'games:developer-detail' game.developer.id %}">
+      {{ game.developer.name }}
+      {% if user == game.developer %} (Me){% endif %}
+    </a>
+  </p>
+  <p>Country: {{ game.developer.country }}</p>
+  <p>Official website:
+    <a href="{{ game.developer.website }}" target="_blank"> {{ game.developer.website }}</a></p>
+
+{% endblock %}

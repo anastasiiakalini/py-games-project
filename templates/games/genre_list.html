@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load crispy_forms_filters %}
+
+{% block content %}
+
+  <h1>Genres</h1>
+
+    <form method="get" action="" class="form-inline">
+      {{ search_form|crispy }}
+      <input class="btn btn-secondary" type="submit" value="Search">
+    </form>
+
+  <br>
+
+  {% if genre_list %}
+    <ul>
+    {% for genre in genre_list %}
+      <li>
+        <a href="{% url 'games:game-by-genre' genre.slug %}">
+          {{ genre.name }}
+        </a>
+      </li>
+    {% endfor %}
+    </ul>
+  {% else %}
+    <p>There are no genres!</p>
+  {% endif %}
+
+{% endblock %}

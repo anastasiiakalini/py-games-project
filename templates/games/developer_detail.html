@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  <h1>{{ developer.name }}
+    <a href="{% url 'games:developer-update' pk=developer.id %}" class="btn btn-secondary link-to-page">
+      Update developer information
+    </a>
+  </h1>
+
+  <br>
+  <p> Official website:
+    <a href="{{ developer.website }}" target="_blank"> {{ developer.website }}</a>
+  </p>
+  <p> Country: {{ developer.country.name }}</p>
+  <h2>Games:</h2>
+  <ul>
+    {% for game in developer.games.all %}
+      <li><p><strong><a href="{% url 'games:game-detail' game.id %}">{{ game.name }}</a></strong></p>
+        <p>genre:
+          {% for genre in game.genre.all %}
+            {{ genre.name }}{% if not forloop.last %}, {% endif %}
+          {% endfor %}
+        </p>
+      </li>
+    {% empty %}
+      <p>The developer doesn't have a game.</p>
+    {% endfor %}
+  </ul>
+{% endblock %}
