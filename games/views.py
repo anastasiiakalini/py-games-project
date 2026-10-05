@@ -72,19 +72,32 @@ class CountryUpdateView(LoginRequiredMixin, generic.UpdateView):
     success_url = reverse_lazy("games:country-list")
 
 
-# class CountryDeleteView(LoginRequiredMixin, generic.DeleteView):
-#     model = Country
-#     success_url = reverse_lazy("games:country-list")
-
-
 class DeveloperByCountryListView(LoginRequiredMixin, generic.ListView):
     model = Developer
     template_name = "games/developer_list.html"
+    paginate_by = 5
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        name = self.request.GET.get("name", "")
+        context["search_form"] = DeveloperSearchForm(
+            initial={"name": name}
+        )
+        return context
 
     def get_queryset(self):
-        return Developer.objects.filter(
+        queryset = Developer.objects.filter(
             country__slug=self.kwargs["slug"]
         ).select_related("country")
+
+        form = DeveloperSearchForm(self.request.GET)
+
+        if form.is_valid():
+            queryset = queryset.filter(
+                name__icontains=form.cleaned_data["name"]
+            )
+
+        return queryset
 
 
 class DeveloperListView(LoginRequiredMixin, generic.ListView):
@@ -167,13 +180,33 @@ class GameListView(LoginRequiredMixin, generic.ListView):
 class GameByGenreListView(LoginRequiredMixin, generic.ListView):
     model = Game
     template_name = "games/game_list.html"
+    paginate_by = 5
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        name = self.request.GET.get("name", "")
+
+        context["search_form"] = GameSearchForm(
+            initial={"name": name}
+        )
+
+        return context
 
     def get_queryset(self):
-        return (
-            Game.objects.filter(genre__slug=self.kwargs["slug"])
+        queryset = (Game.objects.filter(
+            genre__slug=self.kwargs["slug"]
+        )
             .select_related("developer")
             .prefetch_related("genre")
         )
+
+        form = GameSearchForm(self.request.GET)
+
+        if form.is_valid():
+            queryset = queryset.filter(
+                name__icontains=form.cleaned_data["name"]
+            )
+        return queryset
 
 
 class GameCreateView(LoginRequiredMixin, generic.CreateView):

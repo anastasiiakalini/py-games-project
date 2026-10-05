@@ -1,33 +1,75 @@
 {% extends "base.html" %}
 
 {% block content %}
+<title>{% block title %}{{ game.name }}{% endblock %}</title>
 
-  <h1>{{ game.name }}
-    <a href="{% url 'games:game-update' pk=game.id %}" class="btn btn-secondary link-to-page">
+<h1 class="display-5 fw-bolder text-black mb-2 my-5 text-center position-relative">
+  {{ game.name }}
+  {% if user == game.developer %}
+    <a href="{% url 'games:game-update' pk=game.id %}"
+       class="btn btn-primary position-absolute top-50 end-0 translate-middle-y me-5">
       Update game information
     </a>
-  </h1>
-  <p>
-    <strong>Genre:</strong>
-    {% for genre in game.genre.all %}
-      {{ genre.name }}{% if not forloop.last %}, {% endif %}
-    {% endfor %}
-  </p>
-  <p>
-    <strong>Description:</strong> {{ game.description }}
-  </p>
-  <p>
-    <strong>Price, USD:</strong> {{ game.price }}
-  </p>
-  <h2>Developer:</h2>
-  <p> Name:
-    <a href="{% url 'games:developer-detail' game.developer.id %}">
-      {{ game.developer.name }}
-      {% if user == game.developer %} (Me){% endif %}
-    </a>
-  </p>
-  <p>Country: {{ game.developer.country }}</p>
-  <p>Official website:
-    <a href="{{ game.developer.website }}" target="_blank"> {{ game.developer.website }}</a></p>
+  {% endif %}
+</h1>
+
+<div class="container my-5">
+  <div class="card shadow-sm mx-auto" style="max-width: 850px;">
+    <div class="card-body p-4">
+
+      <div class="row mb-3">
+        <div class="col-sm-4 fw-bold">
+          Genre:
+        </div>
+
+        <div class="col-sm-8">
+          {% for genre in game.genre.all %}
+            {{ genre.name }}{% if not forloop.last %}, {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <hr>
+
+      <div class="row mb-3">
+        <div class="col-sm-4 fw-bold">
+          Description:
+        </div>
+
+        <div class="col-sm-8">
+          {{ game.description }}
+        </div>
+      </div>
+
+      <hr>
+
+      <div class="row mb-3">
+        <div class="col-sm-4 fw-bold">
+          Price, USD:
+        </div>
+
+        <div class="col-sm-8">
+          {{ game.price }}
+        </div>
+      </div>
+
+      <hr>
+
+      <div class="row mb-3">
+        <div class="col-sm-4 fw-bold">
+          Developer:
+        </div>
+
+        <div class="col-sm-8">
+          <a href="{% url 'games:developer-detail' game.developer.id %}">
+            {{ game.developer.name }}
+            {% if user == game.developer %} (Me){% endif %}
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 {% endblock %}

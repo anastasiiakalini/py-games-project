@@ -16,7 +16,7 @@ class CountrySearchForm(forms.Form):
         max_length=255,
         required=False,
         label="",
-        widget=forms.TextInput(attrs={"placeholder": "Search by country"}),
+        widget=forms.TextInput(attrs={"placeholder": "Search country"}),
     )
 
 
@@ -25,7 +25,7 @@ class GenreSearchForm(forms.Form):
         max_length=255,
         required=False,
         label="",
-        widget=forms.TextInput(attrs={"placeholder": "Search by genre"}),
+        widget=forms.TextInput(attrs={"placeholder": "Search genre"}),
     )
 
 

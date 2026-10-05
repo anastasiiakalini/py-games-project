@@ -2,29 +2,66 @@
 
 {% block content %}
 
-  <h1>{{ developer.name }}
-    <a href="{% url 'games:developer-update' pk=developer.id %}" class="btn btn-secondary link-to-page">
+<title>{% block title %}{{ developer.name }}{% endblock %}</title>
+
+<h1 class="display-5 fw-bolder text-black mb-2 my-5 text-center position-relative">
+  {{ developer.name }}
+  {% if user == developer %}
+    <a href="{% url 'games:developer-update' pk=developer.id %}"
+       class="btn btn-primary position-absolute top-50 end-0 translate-middle-y me-5">
       Update developer information
     </a>
-  </h1>
+  {% endif %}
+</h1>
 
-  <br>
-  <p> Official website:
-    <a href="{{ developer.website }}" target="_blank"> {{ developer.website }}</a>
-  </p>
-  <p> Country: {{ developer.country.name }}</p>
-  <h2>Games:</h2>
-  <ul>
-    {% for game in developer.games.all %}
-      <li><p><strong><a href="{% url 'games:game-detail' game.id %}">{{ game.name }}</a></strong></p>
-        <p>genre:
-          {% for genre in game.genre.all %}
+<div class="container my-5">
+  <div class="card shadow-sm mx-auto" style="max-width: 850px;">
+
+    <div class="card-body p-4">
+
+      <div class="row mb-3">
+        <div class="col-sm-4 fw-bold">
+          Official website:
+        </div>
+
+        <div class="col-sm-8">
+          <a href="{{ developer.website }}" target="_blank"> {{ developer.website }}</a>
+        </div>
+      </div>
+      <hr>
+
+      <div class="row mb-3">
+        <div class="col-sm-4 fw-bold">
+          Country:
+        </div>
+
+        <div class="col-sm-8">
+          {{ developer.country.name }}
+        </div>
+      </div>
+      <hr>
+
+      <h2>Games:</h2>
+      {% for game in developer.games.all %}
+        <div class="row mb-3">
+          <div class="col-sm-4 fw-bold">
+            <a href="{% url 'games:game-detail' game.id %}">{{ game.name }}</a>
+          </div>
+
+          <div class="col-sm-8">
+            {% for genre in game.genre.all %}
             {{ genre.name }}{% if not forloop.last %}, {% endif %}
-          {% endfor %}
-        </p>
-      </li>
-    {% empty %}
-      <p>The developer doesn't have a game.</p>
-    {% endfor %}
-  </ul>
+            {% endfor %}
+          </div>
+        </div>
+      {% if not forloop.last %}<hr>{% endif %}
+
+      {% empty %}
+        <p>The developer doesn't have any games.</p>
+      {% endfor %}
+
+    </div>
+  </div>
+</div>
+
 {% endblock %}
