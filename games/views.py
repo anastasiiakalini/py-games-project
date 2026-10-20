@@ -4,9 +4,9 @@ from django.views import generic
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .models import Game, Developer, Country, Genre
+from games.models import Game, Developer, Country, Genre
 
-from .forms import (
+from games.forms import (
     CountrySearchForm,
     GenreSearchForm,
     GameSearchForm,

@@ -1,8 +1,8 @@
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Country, Genre, Developer, Game
-from .forms import DeveloperCreationForm, GameCreationForm
+from games.models import Country, Genre, Developer, Game
+from games.forms import DeveloperCreationForm, GameCreationForm
 
 
 class GameModelTests(TestCase):

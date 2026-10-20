@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import (
+from games.views import (
     index,
     CountryListView,
     DeveloperByCountryListView,

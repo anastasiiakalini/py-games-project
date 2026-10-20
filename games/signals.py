@@ -1,7 +1,7 @@
 from django.db.models.signals import pre_delete, post_delete
 from django.dispatch import receiver
 
-from .models import Game, Genre, Developer, Country
+from games.models import Game, Genre, Developer, Country
 
 # GAME SIGNALS
 

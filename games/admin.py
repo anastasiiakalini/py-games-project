@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from django.contrib.auth.admin import UserAdmin
-from .models import Genre, Game, Developer, Country
+from games.models import Genre, Game, Developer, Country
 
 
 @admin.register(Developer)
