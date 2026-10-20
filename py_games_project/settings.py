@@ -37,10 +37,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "games.apps.GamesConfig",
     "debug_toolbar",
     "crispy_bootstrap5",
     "crispy_forms",
-    "games",
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"

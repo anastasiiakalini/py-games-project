@@ -1,17 +1,28 @@
 {% extends "base.html" %}
 
-{% block content %}
-<title>{% block title %}{{ game.name }}{% endblock %}</title>
+{% block title %}{{ game.name }}{% endblock %}
 
-<h1 class="display-5 fw-bolder text-black mb-2 my-5 text-center position-relative">
-  {{ game.name }}
+{% block content %}
+
+<div class="position-relative">
+  <h1 class="display-5 fw-bolder text-black mb-2 my-5 text-center position-relative">
+    {{ game.name }}
+  </h1>
+
   {% if user == game.developer %}
+  <div class="position-absolute top-50 end-0 translate-middle-y me-5 d-flex gap-2">
     <a href="{% url 'games:game-update' pk=game.id %}"
-       class="btn btn-primary position-absolute top-50 end-0 translate-middle-y me-5">
+       class="btn btn-primary">
       Update game information
     </a>
+
+    <a href="{% url 'games:game-delete' pk=game.id %}"
+       class="btn btn-danger">
+      Delete
+    </a>
+  </div>
   {% endif %}
-</h1>
+</div>
 
 <div class="container my-5">
   <div class="card shadow-sm mx-auto" style="max-width: 850px;">

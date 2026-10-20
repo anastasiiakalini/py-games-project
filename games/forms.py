@@ -8,7 +8,6 @@ from games.models import (
     Game,
     Genre,
 )
-from django.utils.text import slugify
 
 
 class CountrySearchForm(forms.Form):
@@ -47,10 +46,22 @@ class GameCreationForm(ModelForm):
         fields = (
             "name",
             "genre",
-            "developer",
             "description",
             "price",
         )
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        genre = cleaned_data.get("genre")
+        new_genre = cleaned_data.get("new_genre")
+
+        if not genre and not new_genre:
+            raise forms.ValidationError(
+                "You must select at least one genre or enter a new one."
+            )
+
+        return cleaned_data
 
     def save(self, commit=True):
         game = super().save(commit=False)
@@ -62,9 +73,7 @@ class GameCreationForm(ModelForm):
             self.save_m2m()
 
             if new_genre:
-                genre, created = Genre.objects.get_or_create(
-                    name=new_genre, defaults={"slug": slugify(new_genre)}
-                )
+                genre, created = Genre.objects.get_or_create(name=new_genre)
                 game.genre.add(genre)
 
         return game
@@ -76,10 +85,17 @@ class GameInformationUpdateForm(forms.ModelForm):
         fields = [
             "name",
             "genre",
-            "developer",
             "description",
             "price",
         ]
+
+    def clean_genre(self):
+        genres = self.cleaned_data["genre"]
+
+        if not genres:
+            raise forms.ValidationError("Select at least one genre.")
+
+        return genres
 
 
 class DeveloperSearchForm(forms.Form):
@@ -179,9 +195,7 @@ class DeveloperInformationUpdateForm(forms.ModelForm):
         new_country = self.cleaned_data.get("new_country")
 
         if new_country:
-            country, created = Country.objects.get_or_create(
-                name=new_country, defaults={"slug": slugify(new_country)}
-            )
+            country, created = Country.objects.get_or_create(name=new_country)
             developer.country = country
 
         if commit:

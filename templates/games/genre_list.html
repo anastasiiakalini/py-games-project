@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load crispy_forms_filters %}
 
-{% block content %}
+{% block title %}Genres{% endblock %}
 
-  <title>{% block title %}Genres{% endblock %}</title>
+{% block content %}
 
   <h1 class="display-5 fw-bolder text-black mb-2 my-5 text-center position-relative">
     Genres
@@ -29,7 +29,7 @@
           <tr>
             <td>{{ genre.id }}</td>
             <td>
-              <a href="{% url 'games:game-by-genre' genre.slug %}">
+              <a href="{% url 'games:game-by-genre' genre.id %}">
                 {{ genre.name }}
               </a>
             </td>

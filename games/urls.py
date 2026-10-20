@@ -3,34 +3,26 @@ from django.urls import path
 from .views import (
     index,
     CountryListView,
-    CountryCreateView,
-    CountryUpdateView,
-    # CountryDeleteView,
     DeveloperByCountryListView,
     DeveloperListView,
     DeveloperDetailView,
     DeveloperCreateView,
     DeveloperUpdateView,
-    # DeveloperDeleteView,
+    DeveloperDeleteView,
     GenreListView,
     GameListView,
     GameDetailView,
     GameCreateView,
     GameUpdateView,
+    GameDeleteView,
     GameByGenreListView,
 )
 
 urlpatterns = [
     path("", index, name="index"),
     path("countries/", CountryListView.as_view(), name="country-list"),
-    path("countries/create/", CountryCreateView.as_view(), name="country-create"),
     path(
-        "countries/<int:pk>/update/",
-        CountryUpdateView.as_view(),
-        name="country-update",
-    ),
-    path(
-        "countries/<slug:slug>/developer/",
+        "countries/<int:pk>/developer/",
         DeveloperByCountryListView.as_view(),
         name="developer-by-country",
     ),
@@ -44,10 +36,13 @@ urlpatterns = [
         DeveloperUpdateView.as_view(),
         name="developer-update",
     ),
-    path("genres/", GenreListView.as_view(), name="genre-list"),
     path(
-        "genres/<slug:slug>/games/", GameByGenreListView.as_view(), name="game-by-genre"
+        "developers/<int:pk>/delete/",
+        DeveloperDeleteView.as_view(),
+        name="developer-delete",
     ),
+    path("genres/", GenreListView.as_view(), name="genre-list"),
+    path("genres/<int:pk>/games/", GameByGenreListView.as_view(), name="game-by-genre"),
     path("games/", GameListView.as_view(), name="game-list"),
     path("games/<int:pk>/", GameDetailView.as_view(), name="game-detail"),
     path("games/create/", GameCreateView.as_view(), name="game-create"),
@@ -55,6 +50,11 @@ urlpatterns = [
         "games/<int:pk>/update/",
         GameUpdateView.as_view(),
         name="game-update",
+    ),
+    path(
+        "games/<int:pk>/delete/",
+        GameDeleteView.as_view(),
+        name="game-delete",
     ),
 ]
 

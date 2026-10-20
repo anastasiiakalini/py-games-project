@@ -1,10 +1,9 @@
 {% extends "base.html" %}
 {% load crispy_forms_filters %}
 
+{% block title %}Developers{% endblock %}
 
 {% block content %}
-
-  <title>{% block title %}Developers{% endblock %}</title>
 
   <h1 class="display-5 fw-bolder text-black mb-2 my-5 text-center position-relative">
     Developers List
@@ -29,7 +28,6 @@
           <tr>
             <th>ID</th>
             <th>Name</th>
-            <th>Username</th>
             <th>Country</th>
             <th>Website</th>
           </tr>
@@ -38,7 +36,6 @@
             <td>{{ developer.id }}</td>
             <td><a href="{% url 'games:developer-detail' developer.id %}"> {{ developer.name }}
               {% if user == developer %} (Me){% endif %}</a></td>
-            <td>{{ developer.username }}</td>
             <td>{{ developer.country }}</td>
             <td><a href="{{ developer.website }}" target="_blank">
               {{ developer.website }}</a></td>

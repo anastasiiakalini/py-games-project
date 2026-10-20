@@ -1,10 +1,9 @@
 {% extends "base.html" %}
 {% load crispy_forms_filters %}
 
+{% block title %}Countries{% endblock %}
 
 {% block content %}
-
-  <title>{% block title %}Countries{% endblock %}</title>
 
   <h1 class="display-5 fw-bolder text-black mb-2 my-5 text-center position-relative">
     Countries
@@ -30,9 +29,10 @@
           <tr>
             <td>{{ country.id }}</td>
             <td>
-              <a href="{% url 'games:developer-by-country' country.slug %}">
+              <a href="{% url 'games:developer-by-country' country.id %}">
                 {{ country.name }}
               </a>
+            </td>
           </tr>
         {% endfor %}
 

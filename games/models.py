@@ -2,19 +2,11 @@ from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.template.defaultfilters import slugify
 from django.urls import reverse
 
 
 class Country(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField(unique=True, null=True, blank=True)
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-
-        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ["name"]
@@ -31,6 +23,8 @@ class Developer(AbstractUser):
         related_name="developers",
     )
 
+    REQUIRED_FIELDS = ["name", "country", "website"]
+
     website = models.URLField()
 
     def __str__(self):
@@ -42,13 +36,6 @@ class Developer(AbstractUser):
 
 class Genre(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField(unique=True, blank=True)
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -70,7 +57,7 @@ class Game(models.Model):
 
     developer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name="games",
     )
 

@@ -2,21 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from .models import Country, Genre, Developer, Game
-from .forms import DeveloperCreationForm
-
-
-class CountryModelTests(TestCase):
-    def test_country_slug_is_created_automatically(self):
-        country = Country.objects.create(name="United States")
-
-        self.assertEqual(country.slug, "united-states")
-
-
-class GenreModelTests(TestCase):
-    def test_genre_slug_is_created_automatically(self):
-        genre = Genre.objects.create(name="Action Games")
-
-        self.assertEqual(genre.slug, "action-games")
+from .forms import DeveloperCreationForm, GameCreationForm
 
 
 class GameModelTests(TestCase):
@@ -181,3 +167,243 @@ class DeveloperCreationFormTests(TestCase):
         self.assertEqual(developer.country.name, "Germany")
 
         self.assertEqual(Country.objects.count(), 2)
+
+
+class GameSignalTests(TestCase):
+
+    def setUp(self):
+        self.country = Country.objects.create(name="Poland")
+
+        self.developer = Developer.objects.create_user(
+            username="developer1",
+            password="testpassword123",
+            name="CD Projekt",
+            country=self.country,
+            website="https://example.com",
+        )
+
+    def test_genre_is_not_deleted_if_other_games_use_it(self):
+        genre = Genre.objects.create(name="RPG")
+
+        game1 = Game.objects.create(
+            name="Cyberpunk",
+            developer=self.developer,
+            description="Test",
+            price=50,
+        )
+
+        game2 = Game.objects.create(
+            name="The Witcher",
+            developer=self.developer,
+            description="Test",
+            price=30,
+        )
+
+        game1.genre.add(genre)
+        game2.genre.add(genre)
+
+        game1.delete()
+
+        self.assertTrue(Genre.objects.filter(pk=genre.pk).exists())
+
+    def test_genre_is_deleted_if_it_is_empty(self):
+        genre = Genre.objects.create(name="RPG")
+
+        game = Game.objects.create(
+            name="Cyberpunk",
+            developer=self.developer,
+            description="Test",
+            price=50,
+        )
+
+        game.genre.add(genre)
+
+        game.delete()
+
+        self.assertFalse(Genre.objects.filter(pk=genre.pk).exists())
+
+
+class DeveloperSignalTests(TestCase):
+
+    def test_country_is_not_deleted_if_other_developer_uses_it(self):
+        country = Country.objects.create(name="Ukraine")
+
+        developer_1 = Developer.objects.create_user(
+            username="developer1",
+            password="testpassword123",
+            name="CD Projekt",
+            country=country,
+            website="https://example_1.com",
+        )
+
+        developer_2 = Developer.objects.create_user(
+            username="developer2",
+            password="testpassword1234",
+            name="GSC Game World",
+            country=country,
+            website="https://example_2.com",
+        )
+
+        developer_1.delete()
+
+        self.assertTrue(Country.objects.filter(pk=country.pk).exists())
+
+    def test_country_is_deleted_when_last_developer_is_deleted(self):
+        country = Country.objects.create(name="Ukraine")
+
+        developer = Developer.objects.create_user(
+            username="developer",
+            password="testpassword123",
+            name="CD Projekt",
+            country=country,
+            website="https://example.com",
+        )
+
+        developer.delete()
+
+        self.assertFalse(Country.objects.filter(pk=country.pk).exists())
+
+    def test_unrelated_country_is_not_deleted(self):
+        country_1 = Country.objects.create(name="Ukraine")
+        country_2 = Country.objects.create(name="Poland")
+
+        developer = Developer.objects.create_user(
+            username="developer1",
+            password="testpassword123",
+            name="CD Projekt",
+            country=country_1,
+            website="https://example.com",
+        )
+
+        developer.delete()
+
+        self.assertTrue(Country.objects.filter(pk=country_2.pk).exists())
+
+
+class GameAccessTests(TestCase):
+    def setUp(self):
+        country = Country.objects.create(name="Poland")
+
+        self.owner = Developer.objects.create_user(
+            username="owner",
+            password="testpassword123",
+            name="Game Owner",
+            country=country,
+            website="https://example.com",
+        )
+
+        self.other_developer = Developer.objects.create_user(
+            username="other",
+            password="testpassword123",
+            name="Other Developer",
+            country=country,
+            website="https://example.org",
+        )
+
+        self.genre = Genre.objects.create(name="Adventure")
+
+        self.game = Game.objects.create(
+            name="Original Game",
+            description="Original description",
+            price="20.00",
+            developer=self.owner,
+        )
+
+        self.game.genre.add(self.genre)
+
+        self.client.force_login(self.other_developer)
+
+    def test_cannot_update_another_developers_game(self):
+        response = self.client.post(
+            reverse("games:game-update", args=[self.game.pk]),
+            data={
+                "name": "Changed Game",
+                "genre": [self.genre.pk],
+                "description": "Changed description",
+                "price": "10.00",
+            },
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+        self.game.refresh_from_db()
+        self.assertEqual(self.game.name, "Original Game")
+
+    def test_cannot_delete_another_developers_game(self):
+        response = self.client.post(reverse("games:game-delete", args=[self.game.pk]))
+
+        self.assertEqual(response.status_code, 404)
+
+        self.assertTrue(Game.objects.filter(pk=self.game.pk).exists())
+
+
+class GameCreationTests(TestCase):
+    def setUp(self):
+        country = Country.objects.create(name="Poland")
+
+        self.developer = Developer.objects.create_user(
+            username="game_creator",
+            password="testpassword123",
+            name="Game Creator",
+            country=country,
+            website="https://example.com",
+        )
+
+        self.genre = Genre.objects.create(name="RPG")
+
+    def test_new_game_belongs_to_logged_in_developer(self):
+        self.client.force_login(self.developer)
+
+        response = self.client.post(
+            reverse("games:game-create"),
+            data={
+                "name": "New Game",
+                "genre": [self.genre.pk],
+                "new_genre": "",
+                "description": "A game description",
+                "price": "49.99",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        game = Game.objects.get(name="New Game")
+        self.assertEqual(game.developer, self.developer)
+
+    def test_new_genre_is_created_with_game(self):
+        form = GameCreationForm(
+            data={
+                "name": "Strategy Game",
+                "genre": [],
+                "new_genre": "Strategy",
+                "description": "A game with a new genre",
+                "price": "29.99",
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+
+        form.instance.developer = self.developer
+        game = form.save()
+
+        self.assertTrue(Genre.objects.filter(name="Strategy").exists())
+
+        self.assertTrue(game.genre.filter(name="Strategy").exists())
+
+    def test_game_form_rejects_missing_genre(self):
+        form = GameCreationForm(
+            data={
+                "name": "Game Without Genre",
+                "genre": [],
+                "new_genre": "",
+                "description": "A game without genres",
+                "price": "19.99",
+            }
+        )
+
+        self.assertFalse(form.is_valid())
+
+        self.assertIn(
+            "You must select at least one genre or enter a new one.",
+            form.non_field_errors(),
+        )

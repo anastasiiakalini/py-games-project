@@ -12,31 +12,27 @@ class DeveloperAdmin(UserAdmin):
     )
     fieldsets = UserAdmin.fieldsets + (
         (
-            (
-                "Additional info",
-                {
-                    "fields": (
-                        "name",
-                        "country",
-                        "website",
-                    )
-                },
-            ),
-        )
+            "Additional info",
+            {
+                "fields": (
+                    "name",
+                    "country",
+                    "website",
+                )
+            },
+        ),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
         (
-            (
-                "Additional info",
-                {
-                    "fields": (
-                        "name",
-                        "country",
-                        "website",
-                    )
-                },
-            ),
-        )
+            "Additional info",
+            {
+                "fields": (
+                    "name",
+                    "country",
+                    "website",
+                )
+            },
+        ),
     )
 
 

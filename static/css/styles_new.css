@@ -10855,3 +10855,46 @@ textarea.form-control-lg {
     transform: translateY(-5px) scale(1.02);
     box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.15);
 }
+
+.games-dropdown:hover > .dropdown-menu {
+    display: block;
+}
+
+.games-dropdown > .dropdown-menu {
+    margin-top: 0;
+}
+
+.games-menu {
+    position: relative;
+}
+
+.games-sidebar {
+    display: none;
+
+    position: absolute;
+    top: 100%;
+    left: 0;
+
+    width: 220px;
+    background-color: #212529;
+
+    padding: 10px 0;
+    z-index: 1000;
+}
+
+.games-menu:hover .games-sidebar {
+    display: block;
+}
+
+.games-sidebar a {
+    display: block;
+
+    padding: 12px 20px;
+
+    color: white;
+    text-decoration: none;
+}
+
+.games-sidebar a:hover {
+    background-color: #343a40;
+}

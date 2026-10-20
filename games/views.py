@@ -26,15 +26,12 @@ def index(request):
     num_developers = Developer.objects.count()
     num_countries = Country.objects.count()
     num_genres = Genre.objects.count()
-    num_visits = request.session.get("num_visits", 0) + 1
-    request.session["num_visits"] = num_visits
 
     context = {
         "num_games": num_games,
         "num_developers": num_developers,
         "num_countries": num_countries,
         "num_genres": num_genres,
-        "num_visits": num_visits,
     }
 
     return render(request, "games/index.html", context=context)
@@ -60,18 +57,6 @@ class CountryListView(LoginRequiredMixin, generic.ListView):
         return self.queryset
 
 
-class CountryCreateView(LoginRequiredMixin, generic.CreateView):
-    model = Country
-    fields = ("name",)
-    success_url = reverse_lazy("games:country-list")
-
-
-class CountryUpdateView(LoginRequiredMixin, generic.UpdateView):
-    model = Country
-    fields = ("name",)
-    success_url = reverse_lazy("games:country-list")
-
-
 class DeveloperByCountryListView(LoginRequiredMixin, generic.ListView):
     model = Developer
     template_name = "games/developer_list.html"
@@ -80,22 +65,20 @@ class DeveloperByCountryListView(LoginRequiredMixin, generic.ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         name = self.request.GET.get("name", "")
-        context["search_form"] = DeveloperSearchForm(
-            initial={"name": name}
-        )
+        context["search_form"] = DeveloperSearchForm(initial={"name": name})
         return context
 
     def get_queryset(self):
-        queryset = Developer.objects.filter(
-            country__slug=self.kwargs["slug"]
-        ).select_related("country")
+        queryset = (
+            Developer.objects.filter(country__id=self.kwargs["pk"])
+            .select_related("country")
+            .order_by("name", "pk")
+        )
 
         form = DeveloperSearchForm(self.request.GET)
 
         if form.is_valid():
-            queryset = queryset.filter(
-                name__icontains=form.cleaned_data["name"]
-            )
+            queryset = queryset.filter(name__icontains=form.cleaned_data["name"])
 
         return queryset
 
@@ -103,7 +86,7 @@ class DeveloperByCountryListView(LoginRequiredMixin, generic.ListView):
 class DeveloperListView(LoginRequiredMixin, generic.ListView):
     model = Developer
     paginate_by = 5
-    queryset = Developer.objects.all()
+    queryset = Developer.objects.order_by("name", "pk")
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super(DeveloperListView, self).get_context_data(**kwargs)
@@ -132,13 +115,19 @@ class DeveloperUpdateView(LoginRequiredMixin, generic.UpdateView):
     model = Developer
     form_class = DeveloperInformationUpdateForm
 
+    def get_queryset(self):
+        return super().get_queryset().filter(pk=self.request.user.pk)
+
     def get_success_url(self):
         return reverse("games:developer-detail", kwargs={"pk": self.object.pk})
 
 
-# class DeveloperDeleteView(LoginRequiredMixin, generic.DeleteView):
-#     model = Developer
-#     success_url = reverse_lazy("games:developer-list")
+class DeveloperDeleteView(LoginRequiredMixin, generic.DeleteView):
+    model = Developer
+    success_url = reverse_lazy("games:developer-list")
+
+    def get_queryset(self):
+        return super().get_queryset().filter(pk=self.request.user.pk)
 
 
 class GenreListView(LoginRequiredMixin, generic.ListView):
@@ -162,7 +151,11 @@ class GenreListView(LoginRequiredMixin, generic.ListView):
 class GameListView(LoginRequiredMixin, generic.ListView):
     model = Game
     paginate_by = 5
-    queryset = Game.objects.prefetch_related("genre")
+    queryset = (
+        Game.objects.select_related("developer")
+        .prefetch_related("genre")
+        .order_by("pk")
+    )
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super(GameListView, self).get_context_data(**kwargs)
@@ -186,32 +179,32 @@ class GameByGenreListView(LoginRequiredMixin, generic.ListView):
         context = super().get_context_data(**kwargs)
         name = self.request.GET.get("name", "")
 
-        context["search_form"] = GameSearchForm(
-            initial={"name": name}
-        )
+        context["search_form"] = GameSearchForm(initial={"name": name})
 
         return context
 
     def get_queryset(self):
-        queryset = (Game.objects.filter(
-            genre__slug=self.kwargs["slug"]
-        )
+        queryset = (
+            Game.objects.filter(genre__id=self.kwargs["pk"])
             .select_related("developer")
             .prefetch_related("genre")
+            .order_by("name")
         )
 
         form = GameSearchForm(self.request.GET)
 
         if form.is_valid():
-            queryset = queryset.filter(
-                name__icontains=form.cleaned_data["name"]
-            )
+            queryset = queryset.filter(name__icontains=form.cleaned_data["name"])
         return queryset
 
 
 class GameCreateView(LoginRequiredMixin, generic.CreateView):
     model = Game
     form_class = GameCreationForm
+
+    def form_valid(self, form):
+        form.instance.developer = self.request.user
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse("games:game-detail", kwargs={"pk": self.object.pk})
@@ -224,7 +217,18 @@ class GameUpdateView(LoginRequiredMixin, generic.UpdateView):
     def get_success_url(self):
         return reverse("games:game-detail", kwargs={"pk": self.object.pk})
 
+    def get_queryset(self):
+        return super().get_queryset().filter(developer=self.request.user)
+
 
 class GameDetailView(LoginRequiredMixin, generic.DetailView):
     model = Game
     queryset = Game.objects.select_related("developer").prefetch_related("genre")
+
+
+class GameDeleteView(LoginRequiredMixin, generic.DeleteView):
+    model = Game
+    success_url = reverse_lazy("games:game-list")
+
+    def get_queryset(self):
+        return super().get_queryset().filter(developer=self.request.user)
