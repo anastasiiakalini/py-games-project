@@ -1,4 +1,5 @@
 from django import forms
+from django.db import transaction
 from django.contrib.auth.forms import UserCreationForm
 from django.forms.models import ModelForm
 
@@ -69,12 +70,15 @@ class GameCreationForm(ModelForm):
         new_genre = self.cleaned_data.get("new_genre")
 
         if commit:
-            game.save()
-            self.save_m2m()
+            with transaction.atomic():
+                game.save()
+                self.save_m2m()
 
-            if new_genre:
-                genre, created = Genre.objects.get_or_create(name=new_genre)
-                game.genre.add(genre)
+                if new_genre:
+                    genre, created = Genre.objects.get_or_create(
+                        name=new_genre
+                    )
+                    game.genre.add(genre)
 
         return game
 
@@ -152,7 +156,8 @@ class DeveloperCreationForm(UserCreationForm):
             developer.country = country
 
         if commit:
-            developer.save()
+            with transaction.atomic():
+                developer.save()
 
         return developer
 
@@ -199,6 +204,7 @@ class DeveloperInformationUpdateForm(forms.ModelForm):
             developer.country = country
 
         if commit:
-            developer.save()
+            with transaction.atomic():
+                developer.save()
 
         return developer
