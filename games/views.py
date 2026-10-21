@@ -104,6 +104,10 @@ class DeveloperListView(LoginRequiredMixin, generic.ListView):
 class DeveloperDetailView(LoginRequiredMixin, generic.DetailView):
     model = Developer
 
+    queryset = Developer.objects.select_related("country").prefetch_related(
+        "games__genre"
+    )
+
 
 class DeveloperCreateView(generic.CreateView):
     model = Developer

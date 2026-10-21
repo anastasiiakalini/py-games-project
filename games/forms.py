@@ -75,9 +75,7 @@ class GameCreationForm(ModelForm):
                 self.save_m2m()
 
                 if new_genre:
-                    genre, created = Genre.objects.get_or_create(
-                        name=new_genre
-                    )
+                    genre, created = Genre.objects.get_or_create(name=new_genre)
                     game.genre.add(genre)
 
         return game
