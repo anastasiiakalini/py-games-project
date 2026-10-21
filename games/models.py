@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.validators import MinValueValidator
+from django.db.models.functions import Lower, Trim
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.urls import reverse
@@ -10,6 +11,13 @@ class Country(models.Model):
 
     class Meta:
         ordering = ["name"]
+
+        constraints = [
+            models.UniqueConstraint(
+                Lower(Trim("name")),
+                name="unique_country_normalized_name",
+            )
+        ]
 
     def __str__(self):
         return self.name
@@ -36,6 +44,14 @@ class Developer(AbstractUser):
 
 class Genre(models.Model):
     name = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                Lower(Trim("name")),
+                name="unique_genre_normalized_name",
+            )
+        ]
 
     def __str__(self):
         return self.name

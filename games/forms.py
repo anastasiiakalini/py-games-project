@@ -75,7 +75,11 @@ class GameCreationForm(ModelForm):
                 self.save_m2m()
 
                 if new_genre:
-                    genre, created = Genre.objects.get_or_create(name=new_genre)
+                    new_genre = " ".join(new_genre.split())
+
+                    genre, created = Genre.objects.get_or_create(
+                        name__iexact=new_genre, defaults={"name": new_genre}
+                    )
                     game.genre.add(genre)
 
         return game
@@ -150,7 +154,11 @@ class DeveloperCreationForm(UserCreationForm):
         new_country = self.cleaned_data.get("new_country")
 
         if new_country:
-            country, created = Country.objects.get_or_create(name=new_country)
+            new_country = " ".join(new_country.split())
+
+            country, created = Country.objects.get_or_create(
+                name__iexact=new_country, defaults={"name": new_country}
+            )
             developer.country = country
 
         if commit:
@@ -198,7 +206,12 @@ class DeveloperInformationUpdateForm(forms.ModelForm):
         new_country = self.cleaned_data.get("new_country")
 
         if new_country:
-            country, created = Country.objects.get_or_create(name=new_country)
+            new_country = " ".join(new_country.split())
+
+            country, created = Country.objects.get_or_create(
+                name__iexact=new_country, defaults={"name": new_country}
+            )
+
             developer.country = country
 
         if commit:

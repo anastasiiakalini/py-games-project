@@ -712,3 +712,59 @@ class ModelConstraintsTests(TestCase):
 
         with self.assertRaises(ValidationError) as error:
             duplicate_country.full_clean()
+
+
+class DuplicatePreventionTests(TestCase):
+
+    def setUp(self):
+        self.country = Country.objects.create(name="Ukraine")
+
+        self.developer = Developer.objects.create_user(
+            username="developer1",
+            password="testpassword123",
+            name="Test Developer",
+            country=self.country,
+            website="https://example.com",
+        )
+
+        self.genre = Genre.objects.create(name="RPG")
+
+    def test_country_is_not_duplicated(self):
+        form = DeveloperCreationForm(
+            data={
+                "username": "developer2",
+                "password1": "StrongPass_12345",
+                "password2": "StrongPass_12345",
+                "name": "Another Developer",
+                "country": "",
+                "new_country": " UKRAINE ",
+                "website": "https://example.com",
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+
+        developer = form.save()
+
+        self.assertEqual(developer.country, self.country)
+        self.assertEqual(Country.objects.count(), 1)
+
+    def test_genre_is_not_duplicated(self):
+        form = GameCreationForm(
+            data={
+                "name": "New Game",
+                "genre": [],
+                "new_genre": " rpg ",
+                "description": "Test description",
+                "price": "19.99",
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+
+        form.instance.developer = self.developer
+        game = form.save()
+
+        self.assertTrue(game.genre.filter(pk=self.genre.pk).exists())
+
+        self.assertEqual(Genre.objects.count(), 1)
