@@ -1,7 +1,9 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.core.exceptions import ValidationError
 
 from games.models import Country, Genre, Developer, Game
+
 from games.forms import DeveloperCreationForm, GameCreationForm
 
 
@@ -407,3 +409,306 @@ class GameCreationTests(TestCase):
             "You must select at least one genre or enter a new one.",
             form.non_field_errors(),
         )
+
+
+class DeveloperProfileTests(TestCase):
+    def setUp(self):
+        self.country = Country.objects.create(name="Poland")
+
+        self.owner = Developer.objects.create_user(
+            username="profile_owner",
+            password="testpassword123",
+            name="Original Studio",
+            country=self.country,
+            website="https://original.example.com",
+        )
+        self.other_developer = Developer.objects.create_user(
+            username="another_developer",
+            password="testpassword123",
+            name="Another Studio",
+            country=self.country,
+            website="https://another.example.com",
+        )
+        self.client.force_login(self.owner)
+
+    def test_owner_can_update_profile(self):
+        response = self.client.post(
+            reverse("games:developer-update", args=[self.owner.pk]),
+            data={
+                "name": "Updated Studio",
+                "country": self.country.pk,
+                "new_country": "",
+                "website": "https://updated.example.com",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.owner.refresh_from_db()
+        self.assertEqual(self.owner.name, "Updated Studio")
+        self.assertEqual(self.owner.website, "https://updated.example.com")
+
+    def test_owner_can_delete_profile(self):
+        owner_id = self.owner.pk
+        response = self.client.post(reverse("games:developer-delete", args=[owner_id]))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Developer.objects.filter(pk=owner_id).exists())
+
+    def test_cannot_update_another_profile(self):
+        response = self.client.post(
+            reverse("games:developer-update", args=[self.other_developer.pk]),
+            data={
+                "name": "Wrong Update",
+                "country": self.country.pk,
+                "new_country": "",
+                "website": "https://changed.example.com",
+            },
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.other_developer.refresh_from_db()
+        self.assertEqual(self.other_developer.name, "Another Studio")
+
+    def test_cannot_delete_another_profile(self):
+        response = self.client.post(
+            reverse("games:developer-delete", args=[self.other_developer.pk])
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(Developer.objects.filter(pk=self.other_developer.pk).exists())
+
+
+class GameOwnerActionsTests(TestCase):
+    def setUp(self):
+        country = Country.objects.create(name="Poland")
+        self.developer = Developer.objects.create_user(
+            username="game_owner",
+            password="testpassword123",
+            name="Game Studio",
+            country=country,
+            website="https://studio.example.com",
+        )
+        self.genre = Genre.objects.create(name="RPG")
+        self.game = Game.objects.create(
+            name="Original Game",
+            description="Original description",
+            price="20.00",
+            developer=self.developer,
+        )
+        self.game.genre.add(self.genre)
+        self.client.force_login(self.developer)
+
+    def test_owner_can_update_game(self):
+        response = self.client.post(
+            reverse("games:game-update", args=[self.game.pk]),
+            data={
+                "name": "Updated Game",
+                "genre": [self.genre.pk],
+                "description": "Updated description",
+                "price": "35.00",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.game.refresh_from_db()
+        self.assertEqual(self.game.name, "Updated Game")
+        self.assertEqual(self.game.description, "Updated description")
+
+    def test_owner_can_delete_game(self):
+        game_id = self.game.pk
+        response = self.client.post(reverse("games:game-delete", args=[game_id]))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Game.objects.filter(pk=game_id).exists())
+
+
+class CatalogFiltersTests(TestCase):
+    def setUp(self):
+        self.poland = Country.objects.create(name="Poland")
+        self.ukraine = Country.objects.create(name="Ukraine")
+        self.polish_developer = Developer.objects.create_user(
+            username="polish_studio",
+            password="testpassword123",
+            name="Polish Studio",
+            country=self.poland,
+            website="https://polish.example.com",
+        )
+        self.ukrainian_developer = Developer.objects.create_user(
+            username="ukrainian_studio",
+            password="testpassword123",
+            name="Ukrainian Studio",
+            country=self.ukraine,
+            website="https://ukrainian.example.com",
+        )
+        self.rpg = Genre.objects.create(name="RPG")
+        self.strategy = Genre.objects.create(name="Strategy")
+        self.rpg_game = Game.objects.create(
+            name="RPG Game",
+            description="Role-playing game",
+            price="25.00",
+            developer=self.polish_developer,
+        )
+        self.strategy_game = Game.objects.create(
+            name="Strategy Game",
+            description="Strategy game",
+            price="30.00",
+            developer=self.ukrainian_developer,
+        )
+        self.rpg_game.genre.add(self.rpg)
+        self.strategy_game.genre.add(self.strategy)
+        self.client.force_login(self.polish_developer)
+
+    def test_games_can_be_filtered_by_genre(self):
+        response = self.client.get(reverse("games:game-by-genre", args=[self.rpg.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            list(response.context["object_list"]),
+            [self.rpg_game],
+        )
+
+    def test_developers_can_be_filtered_by_country(self):
+        response = self.client.get(
+            reverse("games:developer-by-country", args=[self.poland.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            list(response.context["object_list"]),
+            [self.polish_developer],
+        )
+
+
+class GamePaginationTests(TestCase):
+    def setUp(self):
+        country = Country.objects.create(name="Poland")
+
+        self.developer = Developer.objects.create_user(
+            username="pagination_owner",
+            password="testpassword123",
+            name="Studio",
+            country=country,
+            website="https://example.com",
+        )
+        for number in range(7):
+            Game.objects.create(
+                name=f"Game {number}",
+                description="For pagination testing",
+                price="10.00",
+                developer=self.developer,
+            )
+        self.client.force_login(self.developer)
+
+    def test_game_list_has_five_items_on_first_page(self):
+        response = self.client.get(reverse("games:game-list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["is_paginated"])
+        self.assertEqual(len(response.context["object_list"]), 5)
+
+    def test_second_page_has_two_items(self):
+        response = self.client.get(reverse("games:game-list"), {"page": 2})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["object_list"]), 2)
+        self.assertEqual(response.context["page_obj"].number, 2)
+
+
+class AuthenticationAndInvalidIdTests(TestCase):
+    def setUp(self):
+        country = Country.objects.create(name="Poland")
+        self.developer = Developer.objects.create_user(
+            username="auth_studio",
+            password="testpassword123",
+            name="Auth Studio",
+            country=country,
+            website="https://example.com",
+        )
+        self.game = Game.objects.create(
+            name="Protected Game",
+            description="Test",
+            price="15.00",
+            developer=self.developer,
+        )
+
+    def test_anonymous_user_is_redirected_from_games(self):
+        response = self.client.get(reverse("games:game-list"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.startswith(reverse("login")))
+
+    def test_anonymous_user_cannot_create_game(self):
+        response = self.client.post(
+            reverse("games:game-create"),
+            data={
+                "name": "Unauthorized Game",
+                "description": "Test",
+                "price": "10.00",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Game.objects.filter(name="Unauthorized Game").exists())
+
+    def test_nonexistent_game_returns_404(self):
+        self.client.force_login(self.developer)
+        response = self.client.get(reverse("games:game-detail", args=[999999]))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_nonexistent_developer_returns_404(self):
+        self.client.force_login(self.developer)
+        response = self.client.get(reverse("games:developer-detail", args=[999999]))
+
+        self.assertEqual(response.status_code, 404)
+
+
+class ModelConstraintsTests(TestCase):
+    def setUp(self):
+        self.country = Country.objects.create(name="Poland")
+
+        self.developer = Developer.objects.create_user(
+            username="model_studio",
+            password="testpassword123",
+            name="Model Studio",
+            country=self.country,
+            website="https://example.com",
+        )
+
+    def test_negative_game_price_is_invalid(self):
+        game = Game(
+            name="Invalid Price Game",
+            description="Test",
+            price="-5.00",
+            developer=self.developer,
+        )
+
+        with self.assertRaises(ValidationError) as error:
+            game.full_clean()
+
+        self.assertIn("price", error.exception.message_dict)
+
+    def test_duplicate_game_name_is_invalid(self):
+        Game.objects.create(
+            name="Same Game",
+            description="First",
+            price="10.00",
+            developer=self.developer,
+        )
+        duplicate_game = Game(
+            name="Same Game",
+            description="Second",
+            price="20.00",
+            developer=self.developer,
+        )
+
+        with self.assertRaises(ValidationError) as error:
+            duplicate_game.full_clean()
+
+        self.assertIn("name", error.exception.message_dict)
+
+    def test_duplicate_country_name_is_invalid(self):
+        duplicate_country = Country(name="Poland")
+
+        with self.assertRaises(ValidationError) as error:
+            duplicate_country.full_clean()
