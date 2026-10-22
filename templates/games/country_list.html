@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load crispy_forms_filters %}
+
+{% block title %}Countries{% endblock %}
+
+{% block content %}
+
+  <h1 class="display-5 fw-bolder text-black mb-2 my-5 text-center position-relative">
+    Countries
+  </h1>
+
+  <form method="get"
+        role="search"
+        aria-label="Search a country"
+        class="d-flex gap-2 container py-2">
+
+    {{ search_form|crispy }}
+
+    <div>
+      <input class="btn btn-secondary"
+             type="submit"
+             value="Search">
+    </div>
+  </form>
+
+  {% if country_list %}
+
+    <div class="container py-4">
+      <div class="table-responsive">
+
+        <table class="table table-striped table-hover align-middle">
+
+          <caption class="visually-hidden">
+            List of countries
+          </caption>
+
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Name</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for country in country_list %}
+              <tr>
+                <td>{{ country.id }}</td>
+                <td>
+                  <a href="{% url 'games:developer-by-country' country.id %}">
+                    {{ country.name }}
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+
+        </table>
+
+      </div>
+    </div>
+
+  {% else %}
+    <p>There are no countries!</p>
+  {% endif %}
+
+{% endblock %}

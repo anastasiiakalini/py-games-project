@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Are you sure?{% endblock %}
+
+{% block content %}
+
+  <h1 class="display-5 fw-bolder text-black mb-2 my-5 text-center position-relative">
+    Delete this game?
+  </h1>
+  <p class="fs-5 text-black mb-2 my-5 text-center position-relative">
+    If you delete this game the genre will be deleted also (if this genre doesn't have any games).
+  </p>
+  <div class="display-5 fw-bolder text-black mb-5 my-2 text-center position-relative">
+    <form action="" method="post">
+      {% csrf_token %}
+      <input type="submit" value="Yes, delete" class="btn btn-danger">
+
+      <a href="{% url 'games:game-detail' game.id %}"
+         class="btn btn-secondary">
+        Cancel
+      </a>
+
+    </form>
+  </div>
+
+{% endblock %}

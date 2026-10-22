@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 class="display-5 fw-bolder text-red mb-2 my-5 text-center position-relative">
+  Logged out!
+</h2>
+
+
+<p class="fw-bolder mb-2 my-5 text-center position-relative">
+  <a
+    href="{% url 'login'%}">
+    Click here to login again.
+  </a>
+</p>
+
+
+{% endblock %}

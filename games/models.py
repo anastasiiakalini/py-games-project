@@ -1,0 +1,81 @@
+from django.conf import settings
+from django.core.validators import MinValueValidator
+from django.db.models.functions import Lower, Trim
+from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.urls import reverse
+
+
+class Country(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        ordering = ["name"]
+
+        constraints = [
+            models.UniqueConstraint(
+                Lower(Trim("name")),
+                name="unique_country_normalized_name",
+            )
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class Developer(AbstractUser):
+    name = models.CharField(max_length=100)
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.PROTECT,
+        related_name="developers",
+    )
+
+    REQUIRED_FIELDS = ["name", "country", "website"]
+
+    website = models.URLField()
+
+    def __str__(self):
+        return f"{self.username}"
+
+    def get_absolute_url(self):
+        return reverse("games:developer-detail", kwargs={"pk": self.pk})
+
+
+class Genre(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                Lower(Trim("name")),
+                name="unique_genre_normalized_name",
+            )
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class Game(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    description = models.TextField()
+
+    price = models.DecimalField(
+        decimal_places=2, max_digits=10, validators=[MinValueValidator(0)]
+    )
+
+    genre = models.ManyToManyField(
+        Genre,
+        related_name="games",
+    )
+
+    developer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="games",
+    )
+
+    def __str__(self):
+        return f"{self.name} ({self.developer.name})"
