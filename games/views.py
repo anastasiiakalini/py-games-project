@@ -137,7 +137,7 @@ class DeveloperDeleteView(LoginRequiredMixin, generic.DeleteView):
 class GenreListView(LoginRequiredMixin, generic.ListView):
     model = Genre
     paginate_by = 5
-    queryset = Genre.objects.order_by("name")
+    queryset = Genre.objects.order_by("name", "pk")
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super(GenreListView, self).get_context_data(**kwargs)
@@ -158,7 +158,7 @@ class GameListView(LoginRequiredMixin, generic.ListView):
     queryset = (
         Game.objects.select_related("developer")
         .prefetch_related("genre")
-        .order_by("pk")
+        .order_by("name", "pk")
     )
 
     def get_context_data(self, *, object_list=None, **kwargs):
@@ -192,7 +192,7 @@ class GameByGenreListView(LoginRequiredMixin, generic.ListView):
             Game.objects.filter(genre__id=self.kwargs["pk"])
             .select_related("developer")
             .prefetch_related("genre")
-            .order_by("name")
+            .order_by("name", "pk")
         )
 
         form = GameSearchForm(self.request.GET)
