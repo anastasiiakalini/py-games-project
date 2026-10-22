@@ -42,7 +42,7 @@ class CountryListView(LoginRequiredMixin, generic.ListView):
     paginate_by = 5
     context_object_name = "country_list"
     template_name = "games/country_list.html"
-    queryset = Country.objects.all()
+    queryset = Country.objects.order_by("name", "pk")
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super(CountryListView, self).get_context_data(**kwargs)

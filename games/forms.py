@@ -16,7 +16,12 @@ class CountrySearchForm(forms.Form):
         max_length=255,
         required=False,
         label="",
-        widget=forms.TextInput(attrs={"placeholder": "Search country"}),
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Search country",
+                "aria-label": "Country name",
+            }
+        ),
     )
 
 
@@ -25,7 +30,12 @@ class GenreSearchForm(forms.Form):
         max_length=255,
         required=False,
         label="",
-        widget=forms.TextInput(attrs={"placeholder": "Search genre"}),
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Search genre",
+                "aria-label": "Genre name",
+            }
+        ),
     )
 
 
@@ -34,7 +44,12 @@ class GameSearchForm(forms.Form):
         max_length=255,
         required=False,
         label="",
-        widget=forms.TextInput(attrs={"placeholder": "Search by name"}),
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Search by name",
+                "aria-label": "Game name",
+            }
+        ),
     )
 
 
@@ -109,7 +124,12 @@ class DeveloperSearchForm(forms.Form):
         max_length=255,
         required=False,
         label="",
-        widget=forms.TextInput(attrs={"placeholder": "Search by name"}),
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Search by name",
+                "aria-label": "Developer name",
+            }
+        ),
     )
 
 
@@ -148,6 +168,7 @@ class DeveloperCreationForm(UserCreationForm):
 
         return cleaned_data
 
+    @transaction.atomic
     def save(self, commit=True):
         developer = super().save(commit=False)
 
@@ -162,8 +183,7 @@ class DeveloperCreationForm(UserCreationForm):
             developer.country = country
 
         if commit:
-            with transaction.atomic():
-                developer.save()
+            developer.save()
 
         return developer
 
@@ -200,6 +220,7 @@ class DeveloperInformationUpdateForm(forms.ModelForm):
 
         return cleaned_data
 
+    @transaction.atomic
     def save(self, commit=True):
         developer = super().save(commit=False)
 
@@ -215,7 +236,6 @@ class DeveloperInformationUpdateForm(forms.ModelForm):
             developer.country = country
 
         if commit:
-            with transaction.atomic():
-                developer.save()
+            developer.save()
 
         return developer
