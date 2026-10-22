@@ -3,8 +3,7 @@
   <ul class="pagination">
     {% if page_obj.has_previous %}
       <li class="page-item">
-        <a href="?{% if request.GET.name %}name={{ request.GET.name|urlencode }}&amp;{% endif %}page={{ page_obj.previous_page_number }}"
-           class="page-link">
+        <a href="{% querystring page=page_obj.previous_page_number %}">
           prev
         </a>
       </li>
@@ -16,8 +15,7 @@
 
     {% if page_obj.has_next %}
       <li class="page-item">
-        <a href="?{% if request.GET.name %}name={{ request.GET.name|urlencode }}&amp;{% endif %}page={{ page_obj.next_page_number }}"
-           class="page-link">
+        <a href="{% querystring page=page_obj.next_page_number %}">
           next
         </a>
       </li>
