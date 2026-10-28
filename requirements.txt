@@ -13,6 +13,7 @@ packaging==26.2
 pathspec==1.1.1
 platformdirs==4.10.0
 pluggy==1.6.0
+psycopg2-binary==2.9.13
 Pygments==2.21.0
 pytest==9.1.1
 pytest-django==4.14.0
@@ -21,3 +22,4 @@ pytokens==0.4.1
 sqlparse==0.5.5
 tomli==2.4.1
 typing_extensions==4.15.0
+whitenoise==6.12.0
