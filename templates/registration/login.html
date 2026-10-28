@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load crispy_forms_filters %}
+
+{% block content %}
+
+<h2 class="display-5 fw-bolder text-red mb-2 my-5 text-center position-relative">
+  Login
+</h2>
+
+<div class="container py-4 mx-auto"
+     style="max-width: 700px;">
+  {% if next %}
+    <div class="alert alert-block alert-danger">
+      Please login to see this page.
+    </div>
+  {% endif %}
+
+  <form method="post"
+        action="{% url 'login' %}"
+        novalidate>
+    {% csrf_token %}
+    {{ form|crispy }}
+
+    <input type="hidden"
+           name="next"
+           value="{{ next }}">
+
+    <input type="submit"
+           value="Login"
+           class="btn btn-primary">
+
+  </form>
+
+  <p class="fs-5 text-black mb-2 my-5 text-center position-relative">
+    <a href="{% url 'games:developer-create' %}">
+      Don't have an account? Click here to sign up.
+    </a>
+  </p>
+</div>
+
+{% endblock %}
