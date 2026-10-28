@@ -4,6 +4,11 @@ Py Games is a Django web application for browsing and managing video games, game
 It is a learning project that demonstrates Django models, authentication, 
 forms, class-based views, access control, and automated tests.
 
+Log in details:
+>Website URL: https://py-games-project.onrender.com
+>Username: `user`
+>Password: `user12345`
+
 ## Features
 
 - Developer accounts: registration, login, and profile management using a custom user model.
