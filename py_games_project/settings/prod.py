@@ -3,7 +3,11 @@ from py_games_project.settings.base import *
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "py-games-project.onrender.com",
+]
 
 
 # Database
